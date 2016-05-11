@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE struts PUBLIC
+    "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+    "http://struts.apache.org/dtds/struts-2.0.dtd">
+
+<struts>
+	<constant name="struts.multipart.saveDir" value="/tmp" />
+	<constant name="struts.enable.DynamicMethodInvocation" value="false" />
+    <constant name="struts.devMode" value="false" />
+	<package name="default" namespace="/" extends="json-default">
+		<action name="queryBook" class="BookAction" method="queryBook">
+			<result name="success">/SearchBooksResult.jsp</result>
+		</action>
+		
+		<action name="goSearch" class="BookAction">
+			<result name="success">/SearchBooks.jsp</result>
+		</action>
+		
+		<action name="goCreate" class="BookAction">
+			<result name="success">/CreateBook.jsp</result>
+		</action>
+		
+		<action name="goUpdate" class="BookAction" method="goUpdate">
+			<result name="success">/UpdateBook.jsp</result>
+		</action>
+		
+		<action name="doCreate" class="BookAction" method="doCreate">
+			<result name="success" type="redirectAction">
+				<param name="actionMessages">${actionMessages[0]}</param>
+                <param name="actionName">goSearch</param>
+            </result>
+            <result name="input" type="redirectAction">
+                <param name="actionName">goSearch</param>
+            </result>
+		</action>
+		
+		<action name="checkBookName" class="BookAction" method="checkBookName">
+			<result type="json">
+                <param name="root">resultMap</param>
+            </result>
+		</action>
+		
+		<action name="doUpdate" class="BookAction" method="doUpdate">
+			<result name="success" type="redirectAction">
+				<param name="actionMessages">${actionMessages[0]}</param>
+                <param name="actionName">goSearch</param>
+            </result>
+            <result name="input" type="redirectAction">
+                <param name="actionName">goSearch</param>
+            </result>
+		</action>
+		
+		<action name="doDelete" class="BookAction" method="doDelete">
+			<result name="success" type="redirectAction">
+				<param name="actionMessages">${actionMessages[0]}</param>
+                <param name="actionName">goSearch</param>
+            </result>
+            <result name="input" type="redirectAction">
+                <param name="actionName">goSearch</param>
+            </result>
+		</action>
+	</package>
+</struts>
