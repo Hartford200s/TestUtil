@@ -18,11 +18,13 @@ import org.springframework.stereotype.Controller;
 import com.opensymphony.xwork2.ActionSupport;
 
 import Common.Util;
+import anno.Mark;
 import model.Book;
 import service.BookService;
 
 @Controller("BookAction")
 @Scope("prototype")
+
 public class BookAction extends ActionSupport implements ServletRequestAware{
 	
 	@Resource(name = "BookService")
@@ -44,6 +46,7 @@ public class BookAction extends ActionSupport implements ServletRequestAware{
 		return SUCCESS;
 	}
 	
+	@Mark
 	public String queryBook() {
 		try {
 			bookList = bookService.queryList(bookName, bookPrice);
@@ -54,6 +57,7 @@ public class BookAction extends ActionSupport implements ServletRequestAware{
 		}
 	}
 	
+	@Mark
 	public String doCreate() {
 		try {
 			if (uploadImg != null) {
@@ -76,6 +80,7 @@ public class BookAction extends ActionSupport implements ServletRequestAware{
 		return SUCCESS;
 	}
 	
+	@Mark
 	public String checkBookName() {
 		try {
 			if (bookName != null) {
@@ -139,6 +144,16 @@ public class BookAction extends ActionSupport implements ServletRequestAware{
 			return INPUT;
 		}
 		return SUCCESS;
+	}
+	
+	@Mark
+	public void testMark1(String name, int age) {
+		
+	} 
+	
+	@Mark
+	public void testMark2(Object o) {
+		
 	}
 	
 	public List<Book> getBookList() {

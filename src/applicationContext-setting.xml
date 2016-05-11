@@ -16,9 +16,9 @@
 	<bean id="dataSource" class="org.apache.commons.dbcp2.BasicDataSource"
 		destroy-method="close">
 		<property name="driverClassName" value="com.mysql.jdbc.Driver" />
-		<property name="url" value="jdbc:mysql://localhost:3306/demouser" />
+		<property name="url" value="jdbc:mysql://127.0.0.1:3306/test" />
 		<property name="username" value="root" />
-		<property name="password" value="!Open1234" />
+		<property name="password" value="root" />
 	</bean>
 
 	<tx:annotation-driven />
