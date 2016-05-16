@@ -22,16 +22,9 @@ import org.w3c.dom.Node;
 
 public class BuildJmeterXmlUtil {
 	
-	private static final String STRINGPROP= "stringProp";
-	private static final String BOOLPROP= "boolProp";
-	private static final String NAME = "name";
-	private static final String HASHTREE = "hashTree";
-	private static final String ELEMENTPROP = "elementProp";
-	private static final String COLLECTIONPROP = "collectionProp";
-	private static final String THREADGROUP = "ThreadGroup";
-	private static final String LONGPROP = "longProp";
-	
 	private static BuildJmeterXmlUtil buildJmeterXmlUtil = new BuildJmeterXmlUtil();
+	
+	private Properties prop = null;
 	
 	private BuildJmeterXmlUtil() {
 		
@@ -42,13 +35,14 @@ public class BuildJmeterXmlUtil {
 	}
 	
 	public void buildXml(Properties prop, String xmlFileName) {
-		String fileName = prop.getProperty("buildXmlFolder") + xmlFileName + ".jmx";
+		this.prop = prop;
+		String fileName = this.prop.getProperty("buildXmlFolder") + xmlFileName + ".jmx";
 		DocumentBuilderFactory icFactory = DocumentBuilderFactory.newInstance();
 		DocumentBuilder icBuilder;
 		try {
 			icBuilder = icFactory.newDocumentBuilder();
 			Document doc = icBuilder.newDocument();
-			Element mainRootElement = this.getRootElement(doc, prop);
+			Element mainRootElement = this.getRootElement(doc);
 			doc.appendChild(mainRootElement);
 			mainRootElement.appendChild(this.getFirstHashTree(doc));
 
@@ -63,16 +57,16 @@ public class BuildJmeterXmlUtil {
 		}
 	}
 	
-	private Element getRootElement(Document doc, Properties prop) {
+	private Element getRootElement(Document doc) {
 		Element jmeterTestPlan = doc.createElement("jmeterTestPlan");
-		jmeterTestPlan.setAttribute("version", prop.getProperty("version"));
-		jmeterTestPlan.setAttribute("properties", prop.getProperty("properties"));
-		jmeterTestPlan.setAttribute("jmeter", prop.getProperty("jmeter"));
+		jmeterTestPlan.setAttribute("version", this.prop.getProperty("version"));
+		jmeterTestPlan.setAttribute("properties", this.prop.getProperty("properties"));
+		jmeterTestPlan.setAttribute("jmeter", this.prop.getProperty("jmeter"));
 		return jmeterTestPlan;
 	}
 	
 	private Node getFirstHashTree(Document doc) {
-		Element hashTree = doc.createElement(BuildJmeterXmlUtil.HASHTREE);
+		Element hashTree = doc.createElement(JmeterConstant.HASHTREE);
 		hashTree.appendChild(this.getTestPlan(doc));
 		hashTree.appendChild(this.getTestPlanHashTree(doc));
 		return hashTree;
@@ -80,64 +74,187 @@ public class BuildJmeterXmlUtil {
 	
 	private Node getTestPlan(Document doc) {
 		Element testPlan = doc.createElement("TestPlan");
-		testPlan.setAttribute("guiclass", "TestPlanGui");
-		testPlan.setAttribute("testclass", "TestPlan");
-		testPlan.setAttribute("testname", "測試計畫");
-		testPlan.setAttribute("enabled", "true");
-		testPlan.appendChild(this.createElement(doc, BuildJmeterXmlUtil.STRINGPROP, BuildJmeterXmlUtil.NAME, "TestPlan.comments", ""));
-		testPlan.appendChild(this.createElement(doc, BuildJmeterXmlUtil.BOOLPROP, BuildJmeterXmlUtil.NAME, "TestPlan.functional_mode", "false"));
-		testPlan.appendChild(this.createElement(doc, BuildJmeterXmlUtil.BOOLPROP, BuildJmeterXmlUtil.NAME, "TestPlan.serialize_threadgroups", "false"));
+		testPlan.setAttribute(JmeterConstant.GUICLASS, "TestPlanGui");
+		testPlan.setAttribute(JmeterConstant.TESTCLASS, "TestPlan");
+		testPlan.setAttribute(JmeterConstant.TESTNAME, "測試計畫");
+		testPlan.setAttribute("JmeterConstant.ENABLED", JmeterConstant.TRUE);
+		testPlan.appendChild(this.createElement(doc, JmeterConstant.STRINGPROP, JmeterConstant.NAME, "TestPlan.comments", ""));
+		testPlan.appendChild(this.createElement(doc, JmeterConstant.BOOLPROP, JmeterConstant.NAME, "TestPlan.functional_mode", JmeterConstant.FALSE));
+		testPlan.appendChild(this.createElement(doc, JmeterConstant.BOOLPROP, JmeterConstant.NAME, "TestPlan.serialize_threadgroups", JmeterConstant.FALSE));
 		Map<String, String> propMap = new HashMap<String, String>();
-		propMap.put("name", "TestPlan.user_defined_variables");
-		propMap.put("elementType", "Arguments");
-		propMap.put("guiclass", "ArgumentsPanel");
-		propMap.put("testclass", "Arguments");
-		propMap.put("testname", "使用者自訂變數");
-		propMap.put("enabled", "true");
+		propMap.put(JmeterConstant.NAME, "TestPlan.user_defined_variables");
+		propMap.put(JmeterConstant.ELEMENTTYPE, "Arguments");
+		propMap.put(JmeterConstant.GUICLASS, "ArgumentsPanel");
+		propMap.put(JmeterConstant.TESTCLASS, "Arguments");
+		propMap.put(JmeterConstant.TESTNAME, "使用者自訂變數");
+		propMap.put("JmeterConstant.ENABLED", JmeterConstant.TRUE);
 		List<Node> nodeList = new ArrayList<Node>();
-		nodeList.add(this.createElement(doc, BuildJmeterXmlUtil.COLLECTIONPROP, BuildJmeterXmlUtil.NAME, "Arguments.arguments", ""));
+		nodeList.add(this.createElement(doc, JmeterConstant.COLLECTIONPROP, JmeterConstant.NAME, "Arguments.arguments", ""));
 		testPlan.appendChild(this.getElementProp(doc, propMap, nodeList));
-		testPlan.appendChild(this.createElement(doc, BuildJmeterXmlUtil.STRINGPROP, BuildJmeterXmlUtil.NAME, "TestPlan.user_define_classpath", ""));
+		testPlan.appendChild(this.createElement(doc, JmeterConstant.STRINGPROP, JmeterConstant.NAME, "TestPlan.user_define_classpath", ""));
 		return testPlan;
 	}
 	
 	private Node getTestPlanHashTree(Document doc) {
-		Element testPlanHashTree = doc.createElement(BuildJmeterXmlUtil.HASHTREE);
+		Element testPlanHashTree = doc.createElement(JmeterConstant.HASHTREE);
 		testPlanHashTree.appendChild(this.getThreadGroup(doc));
+		testPlanHashTree.appendChild(this.getThreadGroupHashTree(doc));
+		testPlanHashTree.appendChild(this.getConfigTestElement(doc));
+		testPlanHashTree.appendChild(this.createElement(doc, JmeterConstant.HASHTREE, "", "", ""));
+		testPlanHashTree.appendChild(this.getResultCollector(doc));
+		testPlanHashTree.appendChild(this.createElement(doc, JmeterConstant.HASHTREE, "", "", ""));
 		return testPlanHashTree;
 	}
 	
 	private Node getThreadGroup(Document doc) {
-		Element threadGroup = doc.createElement(BuildJmeterXmlUtil.THREADGROUP);
-		threadGroup.setAttribute("guiclass", "ThreadGroupGui");
-		threadGroup.setAttribute("testclass", "ThreadGroup");
-		threadGroup.setAttribute("testname", "執行緒群組");
-		threadGroup.setAttribute("enabled", "true");
-		threadGroup.appendChild(this.createElement(doc, BuildJmeterXmlUtil.STRINGPROP, BuildJmeterXmlUtil.NAME, "ThreadGroup.on_sample_error", "continue"));
+		Element threadGroup = doc.createElement(JmeterConstant.THREADGROUP);
+		threadGroup.setAttribute(JmeterConstant.GUICLASS, "ThreadGroupGui");
+		threadGroup.setAttribute(JmeterConstant.TESTCLASS, "ThreadGroup");
+		threadGroup.setAttribute(JmeterConstant.TESTNAME, "執行緒群組");
+		threadGroup.setAttribute("JmeterConstant.ENABLED", JmeterConstant.TRUE);
+		threadGroup.appendChild(this.createElement(doc, JmeterConstant.STRINGPROP, JmeterConstant.NAME, "ThreadGroup.on_sample_error", "continue"));
 		Map<String, String> propMap = new HashMap<String, String>();
-		propMap.put("name", "ThreadGroup.main_controller");
-		propMap.put("elementType", "LoopController");
-		propMap.put("guiclass", "LoopControlPanel");
-		propMap.put("testclass", "LoopController");
-		propMap.put("testname", "迴圈控制器");
-		propMap.put("enabled", "true");
+		propMap.put(JmeterConstant.NAME, "ThreadGroup.main_controller");
+		propMap.put(JmeterConstant.ELEMENTTYPE, "LoopController");
+		propMap.put(JmeterConstant.GUICLASS, "LoopControlPanel");
+		propMap.put(JmeterConstant.TESTCLASS, "LoopController");
+		propMap.put(JmeterConstant.TESTNAME, "迴圈控制器");
+		propMap.put("JmeterConstant.ENABLED", JmeterConstant.TRUE);
 		List<Node> nodeList = new ArrayList<Node>();
-		nodeList.add(this.createElement(doc, BuildJmeterXmlUtil.BOOLPROP, BuildJmeterXmlUtil.NAME, "LoopController.continue_forever", "false"));
-		nodeList.add(this.createElement(doc, BuildJmeterXmlUtil.STRINGPROP, BuildJmeterXmlUtil.NAME, "LoopController.loops", "1"));
+		nodeList.add(this.createElement(doc, JmeterConstant.BOOLPROP, JmeterConstant.NAME, "LoopController.continue_forever", JmeterConstant.FALSE));
+		nodeList.add(this.createElement(doc, JmeterConstant.STRINGPROP, JmeterConstant.NAME, "LoopController.loops", this.prop.getProperty("loops")));
 		threadGroup.appendChild(this.getElementProp(doc, propMap, nodeList));
-		threadGroup.appendChild(this.createElement(doc, BuildJmeterXmlUtil.STRINGPROP, BuildJmeterXmlUtil.NAME, "ThreadGroup.num_threads", "3"));
-		threadGroup.appendChild(this.createElement(doc, BuildJmeterXmlUtil.STRINGPROP, BuildJmeterXmlUtil.NAME, "ThreadGroup.ramp_time", "1"));
-		threadGroup.appendChild(this.createElement(doc, BuildJmeterXmlUtil.LONGPROP, BuildJmeterXmlUtil.NAME, "ThreadGroup.start_time", "1462865589000"));
-		threadGroup.appendChild(this.createElement(doc, BuildJmeterXmlUtil.LONGPROP, BuildJmeterXmlUtil.NAME, "ThreadGroup.end_time", "1462865589000"));
-		threadGroup.appendChild(this.createElement(doc, BuildJmeterXmlUtil.BOOLPROP, BuildJmeterXmlUtil.NAME, "ThreadGroup.scheduler", "false"));
-		threadGroup.appendChild(this.createElement(doc, BuildJmeterXmlUtil.STRINGPROP, BuildJmeterXmlUtil.NAME, "ThreadGroup.duration", ""));
-		threadGroup.appendChild(this.createElement(doc, BuildJmeterXmlUtil.STRINGPROP, BuildJmeterXmlUtil.NAME, "ThreadGroup.delay", ""));
+		threadGroup.appendChild(this.createElement(doc, JmeterConstant.STRINGPROP, JmeterConstant.NAME, "ThreadGroup.num_threads", this.prop.getProperty("num_threads")));
+		threadGroup.appendChild(this.createElement(doc, JmeterConstant.STRINGPROP, JmeterConstant.NAME, "ThreadGroup.ramp_time", this.prop.getProperty("ramp_time")));
+		threadGroup.appendChild(this.createElement(doc, JmeterConstant.LONGPROP, JmeterConstant.NAME, "ThreadGroup.start_time", "1462865589000"));
+		threadGroup.appendChild(this.createElement(doc, JmeterConstant.LONGPROP, JmeterConstant.NAME, "ThreadGroup.end_time", "1462865589000"));
+		threadGroup.appendChild(this.createElement(doc, JmeterConstant.BOOLPROP, JmeterConstant.NAME, "ThreadGroup.scheduler", JmeterConstant.FALSE));
+		threadGroup.appendChild(this.createElement(doc, JmeterConstant.STRINGPROP, JmeterConstant.NAME, "ThreadGroup.duration", ""));
+		threadGroup.appendChild(this.createElement(doc, JmeterConstant.STRINGPROP, JmeterConstant.NAME, "ThreadGroup.delay", ""));
 		return threadGroup;
 	}
 	
-	private Node createElement(Document doc, String elementName,String name, String nameValue, String nodeValue) {
+	private Node getThreadGroupHashTree(Document doc) {
+		Element hashTree = doc.createElement(JmeterConstant.HASHTREE);
+		hashTree.appendChild(this.getHTTPSamplerProxy(doc));
+		hashTree.appendChild(this.createElement(doc, JmeterConstant.HASHTREE, "", "", ""));
+		return hashTree;
+	}
+	
+	private Node getHTTPSamplerProxy(Document doc) {
+		Element HTTPSamplerProxy = doc.createElement(JmeterConstant.HTTPSAMPLERPROXY);
+		HTTPSamplerProxy.setAttribute(JmeterConstant.GUICLASS, "HttpTestSampleGui");
+		HTTPSamplerProxy.setAttribute(JmeterConstant.TESTCLASS, "HTTPSamplerProxy");
+		HTTPSamplerProxy.setAttribute(JmeterConstant.TESTNAME, "HTTP 要求");
+		HTTPSamplerProxy.setAttribute("JmeterConstant.ENABLED", JmeterConstant.TRUE);
+		Map<String, String> map = new HashMap<String, String>();
+		map.put(JmeterConstant.NAME, "HTTPsampler.Arguments");
+		map.put(JmeterConstant.ELEMENTTYPE, "Arguments");
+		map.put(JmeterConstant.GUICLASS, "HTTPArgumentsPanel");
+		map.put(JmeterConstant.TESTCLASS, "Arguments");
+		map.put(JmeterConstant.TESTNAME, "使用者自訂變數");
+		map.put("JmeterConstant.ENABLED", JmeterConstant.TRUE);
+		List<Node> nodeList = new ArrayList<Node>();
+		nodeList.add(this.createElement(doc, JmeterConstant.COLLECTIONPROP, JmeterConstant.NAME, "Arguments.arguments", ""));
+		HTTPSamplerProxy.appendChild(this.getElementProp(doc, map, nodeList));
+		HTTPSamplerProxy.appendChild(this.createElement(doc, JmeterConstant.STRINGPROP, JmeterConstant.NAME, "HTTPSampler.domain", this.prop.getProperty("domain")));
+		HTTPSamplerProxy.appendChild(this.createElement(doc, JmeterConstant.STRINGPROP, JmeterConstant.NAME, "HTTPSampler.port", this.prop.getProperty("port")));
+		HTTPSamplerProxy.appendChild(this.createElement(doc, JmeterConstant.STRINGPROP, JmeterConstant.NAME, "HTTPSampler.connect_timeout", ""));
+		HTTPSamplerProxy.appendChild(this.createElement(doc, JmeterConstant.STRINGPROP, JmeterConstant.NAME, "HTTPSampler.response_timeout", ""));
+		HTTPSamplerProxy.appendChild(this.createElement(doc, JmeterConstant.STRINGPROP, JmeterConstant.NAME, "HTTPSampler.protocol", ""));
+		HTTPSamplerProxy.appendChild(this.createElement(doc, JmeterConstant.STRINGPROP, JmeterConstant.NAME, "HTTPSampler.contentEncoding", ""));
+		HTTPSamplerProxy.appendChild(this.createElement(doc, JmeterConstant.STRINGPROP, JmeterConstant.NAME, "HTTPSampler.path", this.prop.getProperty("path")));
+		HTTPSamplerProxy.appendChild(this.createElement(doc, JmeterConstant.STRINGPROP, JmeterConstant.NAME, "HTTPSampler.method", "GET"));
+		HTTPSamplerProxy.appendChild(this.createElement(doc, JmeterConstant.BOOLPROP, JmeterConstant.NAME, "HTTPSampler.follow_redirects", JmeterConstant.TRUE));
+		HTTPSamplerProxy.appendChild(this.createElement(doc, JmeterConstant.BOOLPROP, JmeterConstant.NAME, "HTTPSampler.auto_redirects", JmeterConstant.FALSE));
+		HTTPSamplerProxy.appendChild(this.createElement(doc, JmeterConstant.BOOLPROP, JmeterConstant.NAME, "HTTPSampler.use_keepalive", JmeterConstant.TRUE));
+		HTTPSamplerProxy.appendChild(this.createElement(doc, JmeterConstant.BOOLPROP, JmeterConstant.NAME, "HTTPSampler.DO_MULTIPART_POST", JmeterConstant.FALSE));
+		HTTPSamplerProxy.appendChild(this.createElement(doc, JmeterConstant.BOOLPROP, JmeterConstant.NAME, "HTTPSampler.monitor", JmeterConstant.FALSE));
+		HTTPSamplerProxy.appendChild(this.createElement(doc, JmeterConstant.STRINGPROP, JmeterConstant.NAME, "HTTPSampler.embedded_url_re", ""));
+		return HTTPSamplerProxy; 
+	}
+	
+	private Node getConfigTestElement(Document doc) {
+		Element configTestElement = doc.createElement(JmeterConstant.CONFIG_TEST_ELEMENT);
+		configTestElement.setAttribute(JmeterConstant.GUICLASS, "HttpDefaultsGui");
+		configTestElement.setAttribute(JmeterConstant.TESTCLASS, "ConfigTestElement");
+		configTestElement.setAttribute(JmeterConstant.TESTNAME, "HTTP 要求預設值");
+		configTestElement.setAttribute(JmeterConstant.ENABLED, JmeterConstant.TRUE);
+		
+		Map<String,String> map = new HashMap<String, String>();
+		map.put(JmeterConstant.NAME, "HTTPsampler.Arguments");
+		map.put(JmeterConstant.ELEMENTTYPE, "Arguments");
+		map.put(JmeterConstant.GUICLASS, "HTTPArgumentsPanel");
+		map.put(JmeterConstant.TESTCLASS, "Arguments");
+		map.put(JmeterConstant.TESTNAME, "使用者自訂變數");
+		map.put(JmeterConstant.ENABLED, JmeterConstant.TRUE);
+		List<Node> nodeList = new ArrayList<>();
+		nodeList.add(this.createElement(doc, JmeterConstant.COLLECTIONPROP, JmeterConstant.NAME, "Arguments.arguments", ""));
+		configTestElement.appendChild(getElementProp(doc, map, nodeList));
+		configTestElement.appendChild(this.createElement(doc, JmeterConstant.STRINGPROP, JmeterConstant.NAME, "HTTPSampler.domain", this.prop.getProperty("domain")));
+		configTestElement.appendChild(this.createElement(doc, JmeterConstant.STRINGPROP, JmeterConstant.NAME, "HTTPSampler.port", this.prop.getProperty("port")));
+		configTestElement.appendChild(this.createElement(doc, JmeterConstant.STRINGPROP, JmeterConstant.NAME, "HTTPSampler.connect_timeout", ""));
+		configTestElement.appendChild(this.createElement(doc, JmeterConstant.STRINGPROP, JmeterConstant.NAME, "HTTPSampler.response_timeout", ""));
+		configTestElement.appendChild(this.createElement(doc, JmeterConstant.STRINGPROP, JmeterConstant.NAME, "HTTPSampler.protocol", "http"));
+		configTestElement.appendChild(this.createElement(doc, JmeterConstant.STRINGPROP, JmeterConstant.NAME, "HTTPSampler.contentEncoding", ""));
+		configTestElement.appendChild(this.createElement(doc, JmeterConstant.STRINGPROP, JmeterConstant.NAME, "HTTPSampler.path", ""));
+		configTestElement.appendChild(this.createElement(doc, JmeterConstant.STRINGPROP, JmeterConstant.NAME, "HTTPSampler.concurrentPool", "4"));
+		return configTestElement;
+	}
+	
+	private Node getResultCollector(Document doc) {
+		Element resultCollector = doc.createElement(JmeterConstant.RESULTCOLLECTOR);
+		resultCollector.setAttribute(JmeterConstant.GUICLASS, "TableVisualizer");
+		resultCollector.setAttribute(JmeterConstant.TESTCLASS, "ResultCollector");
+		resultCollector.setAttribute(JmeterConstant.TESTNAME, "檢視表格式結果");
+		resultCollector.setAttribute(JmeterConstant.ENABLED, JmeterConstant.TRUE);
+		resultCollector.appendChild(this.createElement(doc, JmeterConstant.BOOLPROP, JmeterConstant.NAME, "ResultCollector.error_logging", JmeterConstant.FALSE));
+		resultCollector.appendChild(this.getObjProp(doc));
+		resultCollector.appendChild(this.createElement(doc, JmeterConstant.STRINGPROP, JmeterConstant.NAME, "filename", ""));
+		return resultCollector;
+	}
+	
+	private Node getObjProp(Document doc) {
+		Element objProp = doc.createElement("objProp");
+		objProp.appendChild(this.createElement(doc, "name", "", "", "saveConfig"));
+		objProp.appendChild(this.getValueElement(doc));
+		return objProp;
+	}
+	
+	private Node getValueElement(Document doc){
+		Element valueElement = doc.createElement(JmeterConstant.VALUE);
+		valueElement.setAttribute(JmeterConstant.CLASS, "SampleSaveConfiguration");
+		valueElement.appendChild(this.createElement(doc, JmeterConstant.TIME, "", "", JmeterConstant.TRUE));
+		valueElement.appendChild(this.createElement(doc, JmeterConstant.LATENCY, "", "", JmeterConstant.TRUE));
+		valueElement.appendChild(this.createElement(doc, JmeterConstant.TIMESTAMP, "", "", JmeterConstant.TRUE));
+		valueElement.appendChild(this.createElement(doc, JmeterConstant.SUCCESS, "", "", JmeterConstant.TRUE));
+		valueElement.appendChild(this.createElement(doc, JmeterConstant.LABEL, "", "", JmeterConstant.TRUE));
+		valueElement.appendChild(this.createElement(doc, JmeterConstant.CODE, "", "", JmeterConstant.TRUE));
+		valueElement.appendChild(this.createElement(doc, JmeterConstant.MESSAGE, "", "", JmeterConstant.TRUE));
+		valueElement.appendChild(this.createElement(doc, JmeterConstant.THREADNAME, "", "", JmeterConstant.TRUE));
+		valueElement.appendChild(this.createElement(doc, JmeterConstant.DATATYPE, "", "", JmeterConstant.TRUE));
+		valueElement.appendChild(this.createElement(doc, JmeterConstant.ENCODING, "", "", JmeterConstant.FALSE));
+		valueElement.appendChild(this.createElement(doc, JmeterConstant.ASSERTIONS, "", "", JmeterConstant.TRUE));
+		valueElement.appendChild(this.createElement(doc, JmeterConstant.SUBRESULTS, "", "", JmeterConstant.TRUE));
+		valueElement.appendChild(this.createElement(doc, JmeterConstant.RESPONSEDATA, "", "", JmeterConstant.FALSE));
+		valueElement.appendChild(this.createElement(doc, JmeterConstant.SAMPLERDATA, "", "", JmeterConstant.FALSE));
+		valueElement.appendChild(this.createElement(doc, JmeterConstant.XML, "", "", JmeterConstant.FALSE));
+		valueElement.appendChild(this.createElement(doc, JmeterConstant.FIELDNAMES, "", "", JmeterConstant.FALSE));
+		valueElement.appendChild(this.createElement(doc, JmeterConstant.RESPONSEHEADERS, "", "", JmeterConstant.FALSE));
+		valueElement.appendChild(this.createElement(doc, JmeterConstant.REQUESTHEADERS, "", "", JmeterConstant.FALSE));
+		valueElement.appendChild(this.createElement(doc, JmeterConstant.RESPONSEDATAONERROR, "", "", JmeterConstant.FALSE));
+		valueElement.appendChild(this.createElement(doc, JmeterConstant.SAVE_ASSERTION_RESULTS_FAILURE_MESSAGE, "", "", JmeterConstant.FALSE));
+		valueElement.appendChild(this.createElement(doc, JmeterConstant.ASSERTIONS_RESULTS_TO_SAVE, "", "", "0"));
+		valueElement.appendChild(this.createElement(doc, JmeterConstant.BYTES, "", "", JmeterConstant.TRUE));
+		valueElement.appendChild(this.createElement(doc, JmeterConstant.THREADCOUNTS, "", "", JmeterConstant.TRUE));
+		return valueElement;
+	}
+	
+	private Node createElement(Document doc, String elementName,String attributeName, String attributeValue, String nodeValue) {
 		Element stringProp = doc.createElement(elementName);
-		stringProp.setAttribute(name, nameValue);
+		if (StringUtils.isNotEmpty(attributeName) && StringUtils.isNotEmpty(attributeValue)) {
+			stringProp.setAttribute(attributeName, attributeValue);
+		}
 		if (StringUtils.isNotEmpty(nodeValue)) {
 			stringProp.setTextContent(nodeValue);
 		} else {
@@ -147,7 +264,7 @@ public class BuildJmeterXmlUtil {
 	}
 	
 	private Node getElementProp(Document doc, Map<String,String> propMap, List<Node> nodeList) {
-		Element elementProp = doc.createElement(BuildJmeterXmlUtil.ELEMENTPROP);
+		Element elementProp = doc.createElement(JmeterConstant.ELEMENTPROP);
 		for (Entry<String, String> entry : propMap.entrySet()) {
 			elementProp.setAttribute(entry.getKey(), entry.getValue());
 		}
@@ -156,4 +273,5 @@ public class BuildJmeterXmlUtil {
 		}
 		return elementProp;
 	}
+	
 }
