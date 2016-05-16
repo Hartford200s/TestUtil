@@ -1,18 +1,25 @@
 package Common;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.lang.reflect.AnnotatedType;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
+import java.util.Properties;
+
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 
 import action.BookAction;
 import anno.Mark;
 
 public class ScanAnnoUtil {
+	
 	
 	private static ScanAnnoUtil scanAnnoUtil = new ScanAnnoUtil();
 	
@@ -25,25 +32,32 @@ public class ScanAnnoUtil {
 	}
 	
 	public void doScan() throws Exception {
-		/*
-		for (Method method : BookAction.class.getMethods())
-		{
-		    if (method.isAnnotationPresent(Mark.class))
-		    {
-		        System.out.println(method.getName());
-		    }
-		}
-		*/
-		Iterable<Class> classes = this.getClasses("action");
+		Properties scanProperties = this.getScanProperties();
+		String packageName = scanProperties.getProperty("scanPackageName");
+		Iterable<Class> classes = this.getClasses(packageName);
 		classes.forEach(c->{
 			for (Method method : c.getMethods()) {
 				if (method.isAnnotationPresent(Mark.class))
 			    {
-					System.out.println("==>"+method.getName());
+					System.out.println("method name==>"+method.getName());
 					for (Parameter parameter : method.getParameters()){
-						System.out.println(parameter.getType());
+						Class typeClass = parameter.getType();
+						System.out.println("parameter~ "+parameter.getType());
+						if (String.class.isAssignableFrom(typeClass)) {
+							System.out.println("is assign able from String");
+						} else if (Integer.class.isAssignableFrom(typeClass) || int.class.isAssignableFrom(typeClass)) {
+							System.out.println("is assign able from Integer");
+						}
 					}
-			        
+					if (method.isAnnotationPresent(RequestMapping.class)) {
+						System.out.println("~~~~ "+method.getAnnotation(RequestMapping.class));
+						RequestMethod[] rm = method.getAnnotation(RequestMapping.class).method();
+						if (rm.length > 0) {
+							String m = rm[0].toString();
+							System.out.println(m);
+						}
+						BuildJmeterXmlUtil.getInstance().buildXml(scanProperties, method.getName());
+					}
 			    }
 			}
 		});
@@ -58,7 +72,6 @@ public class ScanAnnoUtil {
 	    while (resources.hasMoreElements())
 	    {
 	        URL resource = resources.nextElement();
-	        System.out.println(resource);
 	        dirs.add(new File(resource.getFile()));
 	    }
 	    List<Class> classes = new ArrayList<Class>();
@@ -66,7 +79,6 @@ public class ScanAnnoUtil {
 	    {
 	        classes.addAll(findClasses(directory, packageName));
 	    }
-
 	    return classes;
 	}
 	
@@ -92,4 +104,14 @@ public class ScanAnnoUtil {
 	    return classes;
 	}
 	
+	private Properties getScanProperties() {
+		Properties scanProperties = new Properties();
+		File f = new File("src/resources/scanMarkAnnotation.properties");
+		try {
+			scanProperties.load(new FileInputStream(f.getCanonicalPath()));
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return scanProperties;
+	}
 }
