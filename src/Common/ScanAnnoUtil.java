@@ -39,27 +39,18 @@ public class ScanAnnoUtil {
 			for (Method method : c.getMethods()) {
 				if (method.isAnnotationPresent(Mark.class))
 			    {
-					System.out.println("method name==>"+method.getName());
 					String actionURL = method.getAnnotation(Mark.class).actionURL();
-					System.out.println("actionURL========> "+actionURL);
-					for (Parameter parameter : method.getParameters()){
-						Class typeClass = parameter.getType();
-						System.out.println("parameter~ "+parameter.getType());
-						if (String.class.isAssignableFrom(typeClass)) {
-							System.out.println("is assign able from String");
-						} else if (Integer.class.isAssignableFrom(typeClass) || int.class.isAssignableFrom(typeClass)) {
-							System.out.println("is assign able from Integer");
-						}
-					}
+					String requestMethod = method.getAnnotation(Mark.class).requestMethod().toString();
+					/*
 					if (method.isAnnotationPresent(RequestMapping.class)) {
-						System.out.println("~~~~ "+method.getAnnotation(RequestMapping.class));
 						RequestMethod[] rm = method.getAnnotation(RequestMapping.class).method();
 						if (rm.length > 0) {
 							String m = rm[0].toString();
 							System.out.println(m);
 						}
 					}
-					BuildJmeterXmlUtil.getInstance().buildXml(scanProperties, method.getName(), actionURL);
+					*/
+					BuildJmeterXmlUtil.getInstance().buildXml(scanProperties, method.getName(), actionURL, method.getParameters(), requestMethod);
 			    }
 			}
 		});

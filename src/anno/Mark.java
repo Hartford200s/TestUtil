@@ -5,9 +5,13 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import org.springframework.web.bind.annotation.RequestMethod;
+
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
 public @interface Mark {
 	
 	String actionURL();
+	
+	RequestMethod  requestMethod();
 }
