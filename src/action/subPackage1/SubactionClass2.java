@@ -9,19 +9,19 @@ import anno.Mark;
 
 public class SubactionClass2 {
 	
-	@Mark
+	@Mark(actionURL = "SubactionGet.action")
 	@RequestMapping(method = RequestMethod.GET)
 	public void SubactionGet(int i, String s, @PathVariable String userId, @RequestParam(value="name")String name) {
 		
 	}
 	
-	@Mark
+	@Mark(actionURL = "SubactionPost.action")
 	@RequestMapping(method = RequestMethod.POST)
 	public void SubactionPost(int i, String s, @PathVariable String userId, @RequestParam(value="name")String name) {
 		
 	}
 	
-	@Mark
+	@Mark(actionURL = "SubactionPost3.action")
 	@RequestMapping()
 	public void SubactionPost3(int i, String s, @PathVariable String userId, @RequestParam(value="name")String name) {
 		

@@ -40,6 +40,8 @@ public class ScanAnnoUtil {
 				if (method.isAnnotationPresent(Mark.class))
 			    {
 					System.out.println("method name==>"+method.getName());
+					String actionURL = method.getAnnotation(Mark.class).actionURL();
+					System.out.println("actionURL========> "+actionURL);
 					for (Parameter parameter : method.getParameters()){
 						Class typeClass = parameter.getType();
 						System.out.println("parameter~ "+parameter.getType());
@@ -56,8 +58,8 @@ public class ScanAnnoUtil {
 							String m = rm[0].toString();
 							System.out.println(m);
 						}
-						BuildJmeterXmlUtil.getInstance().buildXml(scanProperties, method.getName());
 					}
+					BuildJmeterXmlUtil.getInstance().buildXml(scanProperties, method.getName(), actionURL);
 			    }
 			}
 		});

@@ -25,6 +25,7 @@ public class BuildJmeterXmlUtil {
 	private static BuildJmeterXmlUtil buildJmeterXmlUtil = new BuildJmeterXmlUtil();
 	
 	private Properties prop = null;
+	private String actionURL;
 	
 	private BuildJmeterXmlUtil() {
 		
@@ -34,8 +35,9 @@ public class BuildJmeterXmlUtil {
 		return buildJmeterXmlUtil;
 	}
 	
-	public void buildXml(Properties prop, String xmlFileName) {
+	public void buildXml(Properties prop, String xmlFileName, String actionURL) {
 		this.prop = prop;
+		this.actionURL = actionURL;
 		String fileName = this.prop.getProperty("buildXmlFolder") + xmlFileName + ".jmx";
 		DocumentBuilderFactory icFactory = DocumentBuilderFactory.newInstance();
 		DocumentBuilder icBuilder;
@@ -163,7 +165,8 @@ public class BuildJmeterXmlUtil {
 		HTTPSamplerProxy.appendChild(this.createElement(doc, JmeterConstant.STRINGPROP, JmeterConstant.NAME, "HTTPSampler.response_timeout", ""));
 		HTTPSamplerProxy.appendChild(this.createElement(doc, JmeterConstant.STRINGPROP, JmeterConstant.NAME, "HTTPSampler.protocol", ""));
 		HTTPSamplerProxy.appendChild(this.createElement(doc, JmeterConstant.STRINGPROP, JmeterConstant.NAME, "HTTPSampler.contentEncoding", ""));
-		HTTPSamplerProxy.appendChild(this.createElement(doc, JmeterConstant.STRINGPROP, JmeterConstant.NAME, "HTTPSampler.path", this.prop.getProperty("path")));
+		String path = this.prop.getProperty("path") + actionURL;
+		HTTPSamplerProxy.appendChild(this.createElement(doc, JmeterConstant.STRINGPROP, JmeterConstant.NAME, "HTTPSampler.path", path));
 		HTTPSamplerProxy.appendChild(this.createElement(doc, JmeterConstant.STRINGPROP, JmeterConstant.NAME, "HTTPSampler.method", "GET"));
 		HTTPSamplerProxy.appendChild(this.createElement(doc, JmeterConstant.BOOLPROP, JmeterConstant.NAME, "HTTPSampler.follow_redirects", JmeterConstant.TRUE));
 		HTTPSamplerProxy.appendChild(this.createElement(doc, JmeterConstant.BOOLPROP, JmeterConstant.NAME, "HTTPSampler.auto_redirects", JmeterConstant.FALSE));
