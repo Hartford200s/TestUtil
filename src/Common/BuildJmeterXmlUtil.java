@@ -26,26 +26,21 @@ import org.w3c.dom.Node;
 
 public class BuildJmeterXmlUtil {
 	
-	private static BuildJmeterXmlUtil buildJmeterXmlUtil = new BuildJmeterXmlUtil();
-	
 	private Properties prop = null;
 	private String actionURL;
 	private Parameter[] paramArr = null;
 	private String requestMethod = null;
+	private String xmlFileName = null;
 	
-	private BuildJmeterXmlUtil() {
-		
-	}
-
-	public static BuildJmeterXmlUtil getInstance() {
-		return buildJmeterXmlUtil;
-	}
-	
-	public void buildXml(Properties prop, String xmlFileName, String actionURL, Parameter[] paramArr, String requestMethod) {
+	public BuildJmeterXmlUtil(Properties prop, String xmlFileName, String actionURL, Parameter[] paramArr, String requestMethod) {
 		this.prop = prop;
 		this.actionURL = actionURL;
 		this.paramArr = paramArr;
 		this.requestMethod = requestMethod;
+		this.xmlFileName = xmlFileName;
+	}
+
+	public void buildXml() {
 		String fileName = this.prop.getProperty("buildXmlFolder") + xmlFileName + ".jmx";
 		DocumentBuilderFactory icFactory = DocumentBuilderFactory.newInstance();
 		DocumentBuilder icBuilder;
@@ -295,7 +290,19 @@ public class BuildJmeterXmlUtil {
 				Class typeClass = parameter.getType();
 				if (String.class.isAssignableFrom(typeClass)) {
 					parmValue = "test";
-				} else if (Long.class.isAssignableFrom(typeClass) || long.class.isAssignableFrom(typeClass) || Integer.class.isAssignableFrom(typeClass) || int.class.isAssignableFrom(typeClass)|| Double.class.isAssignableFrom(typeClass) || double.class.isAssignableFrom(typeClass) || Float.class.isAssignableFrom(typeClass) || float.class.isAssignableFrom(typeClass) || BigDecimal.class.isAssignableFrom(typeClass)) {
+				} else if (Long.class.isAssignableFrom(typeClass) || 
+						long.class.isAssignableFrom(typeClass) || 
+						Integer.class.isAssignableFrom(typeClass) || 
+						int.class.isAssignableFrom(typeClass)|| 
+						Double.class.isAssignableFrom(typeClass) || 
+						double.class.isAssignableFrom(typeClass) || 
+						Float.class.isAssignableFrom(typeClass) || 
+						float.class.isAssignableFrom(typeClass) ||
+						Short.class.isAssignableFrom(typeClass) ||
+						short.class.isAssignableFrom(typeClass) ||
+						Byte.class.isAssignableFrom(typeClass) ||
+						byte.class.isAssignableFrom(typeClass) ||
+						BigDecimal.class.isAssignableFrom(typeClass)) {
 					parmValue = "0";
 				} else {
 					parmValue = "";

@@ -50,7 +50,7 @@ public class ScanAnnoUtil {
 						}
 					}
 					*/
-					BuildJmeterXmlUtil.getInstance().buildXml(scanProperties, method.getName(), actionURL, method.getParameters(), requestMethod);
+					new BuildJmeterXmlUtil(scanProperties, method.getName(), actionURL, method.getParameters(), requestMethod).buildXml();
 			    }
 			}
 		});
